@@ -1,8 +1,8 @@
-stages:
+types:
   - build
 
 job1:
-  stage: build
+  type: build
   script:
     - go get gitlab.com/magan/go-bits
     - go build gitlab.com/magan/go-bits
