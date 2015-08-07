@@ -286,7 +286,6 @@ func bitsCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("BITS-Protocol", protocol)
 	w.Header().Add("BITS-Session-Id", uuid)
 	w.Header().Add("Accept-Encoding", "Identity")
-	w.WriteHeader(http.StatusCreated)
 	w.Write(nil)
 
 	Trace.Println("~bitsCreate")
@@ -407,11 +406,13 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 	if rangeEnd < fileSize {
 		// The range is already written to disk
 		Warning.Printf("Range is already written to disk: %v, %v", rangeEnd, fileSize)
+		w.Header().Add("BITS-Recieved-Content-Range", strconv.FormatUint(fileSize, 10))
 		bitsError(w, uuid, http.StatusRequestedRangeNotSatisfiable, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	} else if rangeStart > fileSize {
 		// start must be <= fileSize, else there will be a gap
 		Warning.Printf("Range is too far ahead: %v, %v", rangeStart, fileSize)
+		w.Header().Add("BITS-Recieved-Content-Range", strconv.FormatUint(fileSize, 10))
 		bitsError(w, uuid, http.StatusRequestedRangeNotSatisfiable, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
