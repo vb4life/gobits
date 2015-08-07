@@ -221,14 +221,14 @@ func main() {
 	Error.Fatal(http.ListenAndServe(cfg.Settings.Listen, nil))
 }
 
-func bitsError(w http.ResponseWriter, uuid string) {
+func bitsError(w http.ResponseWriter, uuid string, status, code, context int) {
 	w.Header().Add("BITS-Packet-Type", "Ack")
 	if uuid != "" {
 		w.Header().Add("BITS-Session-Id", uuid)
 	}
-	w.Header().Add("BITS-Error-Code", strconv.FormatInt(0, 16))
-	w.Header().Add("BITS-Error-Context", strconv.FormatInt(BG_ERROR_CONTEXT_REMOTE_FILE, 16))
-	w.WriteHeader(http.StatusInternalServerError)
+	w.Header().Add("BITS-Error-Code", strconv.FormatInt(int64(code), 16))
+	w.Header().Add("BITS-Error-Context", strconv.FormatInt(int64(context), 16))
+	w.WriteHeader(status)
 	w.Write(nil)
 }
 
@@ -258,7 +258,7 @@ func bitsHandler(w http.ResponseWriter, r *http.Request) {
 	case "fragment":
 		bitsFragment(w, r, sessionId)
 	default:
-		bitsError(w, "")
+		bitsError(w, "", http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 	}
 }
 
@@ -281,8 +281,8 @@ func bitsCreate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if protocol != cfg.Settings.Protocol {
-		Warning.Printf("Unknown protocols: %v", protocols)
-		bitsError(w, "")
+		Warning.Printf("unknown protocols: %v", protocols)
+		bitsError(w, "", http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
@@ -291,7 +291,7 @@ func bitsCreate(w http.ResponseWriter, r *http.Request) {
 	uuid, err := newUUID()
 	if err != nil {
 		Error.Println(err)
-		bitsError(w, "")
+		bitsError(w, "", http.StatusInternalServerError, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 	Trace.Println(uuid)
@@ -307,6 +307,7 @@ func bitsCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("BITS-Protocol", protocol)
 	w.Header().Add("BITS-Session-Id", uuid)
 	w.Header().Add("Accept-Encoding", "Identity")
+	w.WriteHeader(http.StatusCreated)
 	w.Write(nil)
 
 	Trace.Println("~bitsCreate")
@@ -320,7 +321,7 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 	// Check for correct session
 	if uuid == "" {
 		Warning.Println("empty session")
-		bitsError(w, "")
+		bitsError(w, "", http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
@@ -329,7 +330,7 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 	srcDir = path.Join(cfg.Settings.TmpDir, uuid)
 	if b, _ := exists(srcDir); !b {
 		Warning.Printf("invalid session: %v", uuid)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
@@ -337,12 +338,12 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 	URI, filename := path.Split(r.RequestURI)
 	if URI != cfg.Settings.URI {
 		Warning.Printf("invalid URI: %v", URI)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 	if filename == "" {
 		Warning.Printf("missing filename: %v", r.RequestURI)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
@@ -361,7 +362,7 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 	var rangeStart, rangeEnd, fileLength uint64
 	if rangeStart, rangeEnd, fileLength, err = parseRange(r.Header.Get("Content-Range")); err != nil {
 		Warning.Printf("failed to parse range: %v", err)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
@@ -369,7 +370,7 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 	var fragmentSize uint64
 	if fragmentSize, err = strconv.ParseUint(r.Header.Get("Content-Length"), 10, 64); err != nil {
 		Warning.Printf("Invalid content-length: %v", err)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
@@ -377,14 +378,14 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 	data, err := ioutil.ReadAll(r.Body)
 	if uint64(len(data)) != fragmentSize {
 		Warning.Printf("Invalid content-length: %v, %v", len(data), fragmentSize)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
 	// Check that content-range matches content-length
 	if rangeEnd - rangeStart + 1 != fragmentSize {
 		Warning.Printf("invalid content-range: (range size: %v, content-length: %v)", rangeEnd - rangeStart + 1, fragmentSize)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
@@ -395,7 +396,7 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 		// Create file
 		if file, err = os.OpenFile(src, os.O_CREATE|os.O_WRONLY, 0600); err != nil {
 			Error.Println(err)
-			bitsError(w, uuid)
+			bitsError(w, uuid, http.StatusInternalServerError, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 			return
 		}
 
@@ -406,7 +407,7 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 		// Open file for append
 		if file, err = os.OpenFile(src, os.O_APPEND|os.O_WRONLY, 0666); err != nil {
 			Error.Println(err)
-			bitsError(w, uuid)
+			bitsError(w, uuid, http.StatusInternalServerError, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 			return
 		}
 
@@ -414,7 +415,7 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 		if info, err := file.Stat(); err != nil {
 			file.Close()
 			Error.Printf("Stat: %v", err)
-			bitsError(w, uuid)
+			bitsError(w, uuid, http.StatusInternalServerError, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 			return
 		} else  {
 			fileSize = uint64(info.Size())
@@ -427,12 +428,12 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 	if rangeEnd < fileSize {
 		// The range is already written to disk
 		Warning.Printf("Range is already written to disk: %v, %v", rangeEnd, fileSize)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusRequestedRangeNotSatisfiable, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	} else if rangeStart > fileSize {
 		// start must be <= fileSize, else there will be a gap
 		Warning.Printf("Range is too far ahead: %v, %v", rangeStart, fileSize)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusRequestedRangeNotSatisfiable, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
@@ -443,7 +444,7 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 	var written uint64
 	if wr, err := file.Write(data[dataOffset:]); err != nil {
 		Error.Println(err)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusInternalServerError, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	} else {
 		written =  uint64(wr)
@@ -452,7 +453,7 @@ func bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 	// Make sure we wrote everything we wanted
 	if written != fragmentSize - dataOffset {
 		Error.Printf("Not all data was written do disk! (written: %v, data: %v)", written, fragmentSize - dataOffset)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusInternalServerError, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
@@ -482,13 +483,13 @@ func bitsCancel(w http.ResponseWriter, r *http.Request, uuid string) {
 	// Check for correct session
 	if uuid == "" {
 		Warning.Printf("empty session")
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 	destDir := path.Join(cfg.Settings.TmpDir, uuid)
 	if exist, _ := exists(destDir); !exist {
 		Warning.Printf("invalid session: %v", uuid)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
@@ -510,13 +511,13 @@ func bitsClose(w http.ResponseWriter, r *http.Request, uuid string) {
 	// Check for correct session
 	if uuid == "" {
 		Warning.Printf("empty session")
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 	destDir := path.Join(cfg.Settings.TmpDir, uuid)
 	if exist, _ := exists(destDir); !exist {
 		Warning.Printf("invalid session: %v", uuid)
-		bitsError(w, uuid)
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
