@@ -37,19 +37,15 @@ Protocol=<identifier of protocol>
 ```
 
 ## Settings
-**Listen** has the form of ip:port, for example 0.0.0.0:8080 to listen to all local IP addresses on port 8080.
-You can also limit it to a specific IP by giving it there. Exmple: 127.0.0.1:8080 will only listen to requests from localhost.
+These are the settings that can be given either on the commandline or in the config file:
 
-**URI** is the last part of the network path, excluding the filename. For example, if you upload a file to http://127.0.0.1:8080/test/file.bin, then the URI should be "/test/".
-If the beginning of the URL doesn't match the URI, it will be ignored.
-If the path has more folders, they will be stripped away. For example, http://127.0.0.1:8080/test/folder/file.bin will not create a subfolder called "folder".
-
-**Root** is the path to the directory where the completed files will be placed.
-
-**TmpDir** is the path to where the uploads that are in progress are placed. By default, they will be plased in the temp directory, under a subdir called *GoBITS*.
-
-**Protocol** is the GUID of the protocol that should be used. 
-There is only one [official](https://msdn.microsoft.com/en-us/library/aa362833(v=vs.85).aspx) GUID, but you can in theory create your own client/server with a different one.
+|Parameter|Description|
+|--------|---|
+|Listen  |Listen has the form of ip:port, for example 0.0.0.0:8080 to listen to all local IP addresses on port 8080. You can also limit it to a specific IP by giving it there. Exmple: 127.0.0.1:8080 will only listen to requests from localhost.|
+|URI     |URI is the last part of the network path, excluding the filename. For example, if you upload a file to http://127.0.0.1:8080/test/file.bin, then the URI should be "/test/". If the beginning of the URL doesn't match the URI, it will be ignored. If the path has more folders, they will be stripped away. For example, http://127.0.0.1:8080/test/folder/file.bin will not create a subfolder called "folder".|
+|Root    |Root is the path to the directory where the completed files will be placed.|
+|TmpDir  |TmpDir is the path to where the uploads that are in progress are placed. By default, they will be plased in the temp directory, under a subdir called *GoBITS*.|
+|Protocol|Protocol is the GUID of the protocol that should be used. There is only one [official](https://msdn.microsoft.com/en-us/library/aa362833(v=vs.85).aspx) GUID, but you can in theory create your own client/server with a different one.|
 
 ## Debug settings
 If you want more (or less) information about what is happening, you can use one of the following switches at startup:
