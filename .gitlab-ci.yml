@@ -1,0 +1,12 @@
+types:
+  - build
+
+buildIt:
+  type: build
+  script:
+    - go get gitlab.com/magan/go-bits
+    - go build gitlab.com/magan/go-bits
+  only:
+    - master
+  tags:
+    - Golang
