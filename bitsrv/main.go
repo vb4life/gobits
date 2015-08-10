@@ -29,6 +29,9 @@ type Config struct {
 
 	// Protocol to use
 	Protocol string
+	
+	// Max size of uploaded file
+	MaxSize uint64
 }
 
 type BITSHandler struct {
@@ -193,6 +196,12 @@ func (b *BITSHandler) bitsFragment(w http.ResponseWriter, r *http.Request, uuid 
 	var rangeStart, rangeEnd, fileLength uint64
 	if rangeStart, rangeEnd, fileLength, err = parseRange(r.Header.Get("Content-Range")); err != nil {
 		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
+		return
+	}
+	
+	// Check filesize
+	if fileLength > b.cfg.MaxSize && b.cfg.MaxSize > 0 {
+		bitsError(w, uuid, http.StatusRequestEntityTooLarge, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
 
