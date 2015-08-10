@@ -6,12 +6,12 @@ Copyright (C) 2015  Magnus Andersson
 package main
 
 import (
-	"path"
 	"fmt"
 	"gitlab.com/magan/gobits/bitsrv"
 	"io"
 	"net/http"
 	"os"
+	"path"
 )
 
 func main() {
@@ -21,6 +21,17 @@ func main() {
 		TempDir:       path.Join(os.TempDir(), "gobits"),
 		AllowedMethod: "BITS_POST",
 		Protocol:      "{7df0354d-249b-430f-820d-3d2a9bef4931}",
+
+		MaxSize: 200 * 1024 * 1024,
+
+		Allowed: []string{
+			".*",
+		},
+
+		Disallowed: []string{
+			".*\\.exe",
+			".*\\.msi",
+		},
 	}
 
 	// Callback to handle events
@@ -45,7 +56,7 @@ func main() {
 			// A session is canceled. Just cleanup the folder. If you have handled the BITS_EVENT_FILE
 			fmt.Printf("Session canceled: %v\n", Session)
 			os.RemoveAll(Path)
-		
+
 		}
 	}
 

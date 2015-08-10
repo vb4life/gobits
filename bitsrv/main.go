@@ -15,6 +15,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -29,9 +30,15 @@ type Config struct {
 
 	// Protocol to use
 	Protocol string
-	
+
 	// Max size of uploaded file
 	MaxSize uint64
+
+	// Whitelisted filter
+	Allowed []string
+
+	// Blacklisted filter
+	Disallowed []string
 }
 
 type BITSHandler struct {
@@ -78,6 +85,10 @@ func NewHandler(cfg Config, cb CallbackFunc) (b *BITSHandler) {
 	}
 	if b.cfg.TempDir == "" {
 		b.cfg.TempDir = path.Join(os.TempDir(), "gobits")
+	}
+
+	if len(b.cfg.Allowed) == 0 {
+		b.cfg.Allowed = []string{"*"}
 	}
 
 	return
@@ -186,6 +197,29 @@ func (b *BITSHandler) bitsFragment(w http.ResponseWriter, r *http.Request, uuid 
 		return
 	}
 
+	// See if filename is blacklisted. If so, return an error
+	for _, reg := range b.cfg.Disallowed {
+		if b, _ := regexp.MatchString(reg, filename); b {
+			// File is blacklisted
+			bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
+			return
+		}
+	}
+
+	// See if filename is whitelisted
+	allowed := false
+	for _, reg := range b.cfg.Allowed {
+		if b, _ := regexp.MatchString(reg, filename); b {
+			allowed = true
+			break
+		}
+	}
+	if !allowed {
+		// No whitelisting rules matched!
+		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
+		return
+	}
+
 	// Get absolute paths to file
 	var src string
 	if src, err = filepath.Abs(filepath.Join(srcDir, filename)); err != nil {
@@ -198,7 +232,7 @@ func (b *BITSHandler) bitsFragment(w http.ResponseWriter, r *http.Request, uuid 
 		bitsError(w, uuid, http.StatusBadRequest, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
 		return
 	}
-	
+
 	// Check filesize
 	if fileLength > b.cfg.MaxSize && b.cfg.MaxSize > 0 {
 		bitsError(w, uuid, http.StatusRequestEntityTooLarge, 0, BG_ERROR_CONTEXT_REMOTE_FILE)
