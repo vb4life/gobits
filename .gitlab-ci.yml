@@ -4,8 +4,8 @@ types:
 buildIt:
   type: build
   script:
-    - go get gitlab.com/magan/go-bits
-    - go build gitlab.com/magan/go-bits
+    - go get gitlab.com/magan/gobits
+    - go build gitlab.com/magan/gobits
   only:
     - master
   tags:
