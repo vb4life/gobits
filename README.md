@@ -1,6 +1,6 @@
 # Go-BITS
 
-[![build status](https://ci.gitlab.com/projects/5690/status.png?ref=master)](https://ci.gitlab.com/projects/5690)
+[![build status](https://ci.gitlab.com/projects/5773/status.png?ref=master)](https://ci.gitlab.com/projects/5773)
 
 This repository holds my golang implementation of the [BITS Upload Protocol](https://msdn.microsoft.com/en-us/library/aa362828(v=vs.85).aspx).
 
