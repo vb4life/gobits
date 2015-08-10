@@ -11,11 +11,15 @@ It has been tested on Windows 10 and Debian 8, so it should&trade; work on all p
 go get gitlab.com/magan/gobits/bitsrv
 go install gitlab.com/magan/gobits/bitsrv
 ```
+[More detail here](https://gitlab.com/magan/gobits/wikis/install)
 
-## Example
-You can find a full example [here](https://gitlab.com/magan/gobits/tree/master/example)
+## Configuration
+[More detail here](https://gitlab.com/magan/gobits/wikis/configure)
 
-In short, it implemets the ServeHTTP handler, so you can use it on an existing webserver written in go by simply adding the following lines of code:
+## Examples
+You can find an example implementation [here](https://gitlab.com/magan/gobits/tree/master/example)
+
+In short, it implements the ServeHTTP handler, so you can use it on an existing webserver written in go by simply adding the following lines of code:
 ```golang
 import gitlab.com/magan/gobits/bitsrv
 ```
@@ -41,5 +45,3 @@ After that, test an upload from a windows machine with the following PowerShell 
 ```powershell
 Start-BitsTransfer -TransferType Upload -Source <path to file to upload> -Destination http://<hostname>:<port>/BITS/<filename>
 ```
-
-I have not implemented the Upload-Reply part of the protocol, since there seems to be a bit of a shortage of good documentation about it.
