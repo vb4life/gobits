@@ -88,7 +88,7 @@ func NewHandler(cfg Config, cb CallbackFunc) (b *BITSHandler) {
 	}
 
 	if len(b.cfg.Allowed) == 0 {
-		b.cfg.Allowed = []string{"*"}
+		b.cfg.Allowed = []string{".*"}
 	}
 
 	return
