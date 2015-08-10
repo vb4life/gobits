@@ -19,16 +19,6 @@ import (
 	"strings"
 )
 
-const (
-
-	// The default HTTP method for BITS
-	BITS_METHOD = "BITS_POST"
-
-	// BITS 1.5 Upload Protocol
-	// https://msdn.microsoft.com/en-us/library/aa362833(v=vs.85).aspx
-	BITS_PROTOCOL = "{7df0354d-249b-430f-820d-3d2a9bef4931}"
-)
-
 type Config struct {
 
 	// Directory to store unfinished files in
@@ -76,10 +66,12 @@ func NewHandler(cfg Config, cb CallbackFunc) (b *BITSHandler) {
 
 	// Set defaults
 	if b.cfg.AllowedMethod == "" {
-		b.cfg.AllowedMethod = BITS_METHOD
+		b.cfg.AllowedMethod = "BITS_POST"
 	}
 	if b.cfg.Protocol == "" {
-		b.cfg.Protocol = BITS_PROTOCOL
+		// BITS 1.5 Upload Protocol
+		// https://msdn.microsoft.com/en-us/library/aa362833(v=vs.85).aspx
+		b.cfg.Protocol = "{7df0354d-249b-430f-820d-3d2a9bef4931}"
 	}
 	if b.cfg.TempDir == "" {
 		b.cfg.TempDir = path.Join(os.TempDir(), "gobits")
