@@ -1,14 +1,11 @@
 types:
   - build
 
-buildIt:
+build:
   type: build
   script:
     - go get gitlab.com/magan/gobits/bitsrv
-    - go install gitlab.com/magan/gobits/bitsrv
     - go get gitlab.com/magan/gobits/example
-    - go install gitlab.com/magan/gobits/example
-  only:
-    - master
+    - go build gitlab.com/magan/gobits/example
   tags:
-    - Golang
+    - golang
