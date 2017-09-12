@@ -1,5 +1,7 @@
 # Go-BITS
 
+[![GoDoc](https://godoc.org/gitlab.com/magan/gobits/bitsrv?status.svg)](https://godoc.org/gitlab.com/magan/gobits/bitsrv)
+
 This repository holds my golang implementation of the [BITS Upload Protocol](https://msdn.microsoft.com/en-us/library/aa362828(v=vs.85).aspx).
 
 It has been tested on Windows 10 and Debian 8, so it should&trade; work on all platforms.
