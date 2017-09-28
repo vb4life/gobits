@@ -7,17 +7,20 @@ package main
 
 import (
 	"fmt"
-	"gitlab.com/magan/gobits/bitsrv"
 	"io"
 	"net/http"
 	"os"
 	"path"
+
+	"log"
+
+	"gitlab.com/magan/gobits"
 )
 
 func main() {
 
 	// Default settings, not neccessary to change then, really
-	cfg := &bitsrv.Config{
+	cfg := &gobits.Config{
 		TempDir:       path.Join(os.TempDir(), "gobits"),
 		AllowedMethod: "BITS_POST",
 		Protocol:      "{7df0354d-249b-430f-820d-3d2a9bef4931}",
@@ -35,32 +38,35 @@ func main() {
 	}
 
 	// Callback to handle events
-	cb := func(event bitsrv.BITSEvent, Session, Path string) {
+	cb := func(event gobits.Event, session, path string) {
 		switch event {
-		case bitsrv.EventCreateSession:
+		case gobits.EventCreateSession:
 			// This is just for informational purposes, not much we can do here..
-			fmt.Printf("New session created: %v\n", Session)
+			log.Printf("New session created: %v\n", session)
 
-		case bitsrv.EventRecieveFile:
+		case gobits.EventRecieveFile:
 			// This is interesting. A file has been successfully been uploaded, and we must process it (move it or whatever)
-			fmt.Printf("New file created: %v\n", Path)
-			os.Remove(Path) // For debug purposes, just remove it
+			log.Printf("New file created: %v\n", path)
+			os.Remove(path) // For debug purposes, just remove it
 
-		case bitsrv.EventCloseSession:
+		case gobits.EventCloseSession:
 			// A session is closed, meaning that all files in the session is completed. If you manage files in the EventRecievedFile above,
 			// you only need to clean up the directory..
-			fmt.Printf("Session closed: %v\n", Session)
-			os.RemoveAll(Path)
+			log.Printf("Session closed: %v\n", session)
+			os.RemoveAll(path)
 
-		case bitsrv.EventCancelSession:
+		case gobits.EventCancelSession:
 			// A session is canceled. Just cleanup the folder. If you have handled the BITS_EVENT_FILE
-			fmt.Printf("Session canceled: %v\n", Session)
-			os.RemoveAll(Path)
+			log.Printf("Session canceled: %v\n", session)
+			os.RemoveAll(path)
 
 		}
 	}
 
-	bits := bitsrv.NewHandler(*cfg, cb)
+	bits, err := gobits.NewHandler(*cfg, cb)
+	if err != nil {
+		log.Fatalf("failed to create handler: %v", err)
+	}
 
 	http.Handle("/BITS/", bits)
 	fmt.Println(http.ListenAndServe(":8080", nil))
@@ -85,7 +91,7 @@ func moveFile(src, dst string) (err error) {
 	} else {
 		// File exists
 		if !fd.Mode().IsRegular() {
-			return fmt.Errorf("destination must be a file", dst)
+			return fmt.Errorf("destination must be a file")
 		}
 		if os.SameFile(fs, fd) {
 			// No need to move the file, they are the same

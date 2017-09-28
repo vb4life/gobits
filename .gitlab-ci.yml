@@ -4,7 +4,7 @@ types:
 build:
   type: build
   script:
-    - go get gitlab.com/magan/gobits/bitsrv
+    - go get gitlab.com/magan/gobits
     - go get gitlab.com/magan/gobits/example
     - go build gitlab.com/magan/gobits/example
   tags:

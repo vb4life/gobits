@@ -1,15 +1,14 @@
-# Go-BITS
+# GoBITS
 
-[![GoDoc](https://godoc.org/gitlab.com/magan/gobits/bitsrv?status.svg)](https://godoc.org/gitlab.com/magan/gobits/bitsrv)
+[![GoDoc](https://godoc.org/gitlab.com/magan/gobits?status.svg)](https://godoc.org/gitlab.com/magan/gobits)
 
 This repository holds my golang implementation of the [BITS Upload Protocol](https://msdn.microsoft.com/en-us/library/aa362828(v=vs.85).aspx).
 
-It has been tested on Windows 10 and Debian 8, so it should&trade; work on all platforms.
+It has been tested on Windows 10 and Debian 8, so it _should_ work on all platforms.
 
 ## How to get
 ```
-go get gitlab.com/magan/gobits/bitsrv
-go install gitlab.com/magan/gobits/bitsrv
+go install gitlab.com/magan/gobits
 ```
 [More detail here](https://gitlab.com/magan/gobits/wikis/install)
 
@@ -21,23 +20,23 @@ You can find an example implementation [here](https://gitlab.com/magan/gobits/tr
 
 In short, it implements the ServeHTTP handler, so you can use it on an existing webserver written in go by simply adding the following lines of code:
 ```golang
-import gitlab.com/magan/gobits/bitsrv
+import gitlab.com/magan/gobits
 ```
 
 ```golang
-cb := func(event bitsrv.BITSEvent, Session, Path string) {
+cb := func(event gobits.Event, session, path string) {
 	switch event {
-	case bitsrv.EventCreateSession:
-		fmt.Printf("New session created: %v\n", Session)
-	case bitsrv.EventRecieveFile:
-		fmt.Printf("New file created: %v\n", Path)
-	case bitsrv.EventCloseSession:
-		fmt.Printf("Session closed: %v\n", Session)
-	case bitsrv.EventCancelSession:
-		fmt.Printf("Session canceled: %v\n", Session)
+	case gobits.EventCreateSession:
+		fmt.Printf("new session created: %v\n", session)
+	case gobits.EventRecieveFile:
+		fmt.Printf("new file created: %v\n", path)
+	case gobits.EventCloseSession:
+		fmt.Printf("session closed: %v\n", session)
+	case gobits.EventCancelSession:
+		fmt.Printf("session canceled: %v\n", session)
 	}
 }
-bits := bitsrv.NewHandler(bitsrv.Config{}, cb)
+bits := gobits.NewHandler(gobits.Config{}, cb)
 http.Handle("/BITS/", bits)
 ```
 

@@ -1,0 +1,46 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "taskName": "build pkg",
+            "type": "shell",
+            "command": "go",
+            "args": [
+                "build",
+                "-x",
+                "-v"
+            ],
+            "problemMatcher": [
+                "$go"
+            ],
+            "group": "build"
+        },
+        {
+            "taskName": "install pkg",
+            "type": "shell",
+            "command": "go",
+            "args": [
+                "install"
+            ],
+            "problemMatcher": [
+                "$go"
+            ],
+            "group": "build"
+        },
+        {
+            "taskName": "build example",
+            "type": "shell",
+            "command": "go",
+            "args": [
+                "build",
+                "-o",
+                "${workspaceRoot}\\example_bits.exe",
+                "example\\main.go"
+            ],
+            "problemMatcher": [
+                "$go"
+            ],
+            "group": "build"
+        }
+    ]
+}
