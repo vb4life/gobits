@@ -15,7 +15,7 @@ import (
 func (b *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Only allow BITS requests
 	if r.Method != b.cfg.AllowedMethod {
-		http.Error(w, "Unauthorized", http.StatusBadRequest)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (b *Handler) bitsCreate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if protocol != b.cfg.Protocol {
-		// no mathcing protocol found
+		// no matching protocol found
 		bitsError(w, "", http.StatusBadRequest, 0, ErrorContextRemoteFile)
 		return
 	}
