@@ -98,7 +98,7 @@ func (b *Handler) bitsCreate(w http.ResponseWriter, r *http.Request) {
 func (b *Handler) bitsFragment(w http.ResponseWriter, r *http.Request, uuid string) {
 
 	// Check for correct session
-	if uuid == "" {
+	if uuid == "" || !isValidUUID(uuid) {
 		bitsError(w, "", http.StatusBadRequest, 0, ErrorContextRemoteFile)
 		return
 	}
@@ -298,7 +298,7 @@ func (b *Handler) bitsFragment(w http.ResponseWriter, r *http.Request, uuid stri
 // https://msdn.microsoft.com/en-us/library/aa362829(v=vs.85).aspx
 func (b *Handler) bitsCancel(w http.ResponseWriter, r *http.Request, uuid string) {
 	// Check for correct session
-	if uuid == "" {
+	if uuid == "" || !isValidUUID(uuid) {
 		bitsError(w, uuid, http.StatusBadRequest, 0, ErrorContextRemoteFile)
 		return
 	}
@@ -327,7 +327,7 @@ func (b *Handler) bitsCancel(w http.ResponseWriter, r *http.Request, uuid string
 // https://msdn.microsoft.com/en-us/library/aa362830(v=vs.85).aspx
 func (b *Handler) bitsClose(w http.ResponseWriter, r *http.Request, uuid string) {
 	// Check for correct session
-	if uuid == "" {
+	if uuid == "" || !isValidUUID(uuid) {
 		bitsError(w, uuid, http.StatusBadRequest, 0, ErrorContextRemoteFile)
 		return
 	}

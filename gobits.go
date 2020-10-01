@@ -138,6 +138,13 @@ func newUUID() (string, error) {
 	return fmt.Sprintf("%x-%x-%x-%x-%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:]), nil
 }
 
+func isValidUUID(uuid string) bool {
+	const match = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
+
+	b, _ := regexp.Match(match, []byte(uuid))
+	return b
+}
+
 // check if file exists
 func exists(path string) (bool, error) {
 	var err error
